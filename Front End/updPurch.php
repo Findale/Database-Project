@@ -6,19 +6,35 @@
 		$credentials = "user = delivery password=frozen";
 
 		$db = pg_connect( "$host $port $dbname $credentials");
-		$eid = $_POST['template-contactform-default-select'];
-		$wareid = $_POST['template-contactform-default-selector'];
-		$sql = "Update works_ware SET End_Date = CURRENT_DATE WHERE Employee_ID = '$eid' AND End_Date IS NULL";
+		$oid = $_POST['template-contactform-default-select'];
+		$quan = $_POST['template-contactform'];
+		$sql = "Update supplies SET Quantity = '$quan' WHERE Order_ID = '$oid' AND Sup_Date IS NULL";
 		pg_query($db, $sql);
 
-		$query = "INSERT INTO works_ware (Ware_ID, Employee_ID, Start_Date, End_Date)
-			VALUES ('$wareid', '$eid', CURRENT_DATE, NULL)";
-		pg_query($db, $query);
+		header('Location: suppList.php'); exit();
+	}
+
+	function cancelOrder() {
+		$host        = "host = 127.0.0.1";
+		$port        = "port = 5432";
+		$dbname      = "dbname = delivery";
+		$credentials = "user = delivery password=frozen";
+
+		$db = pg_connect( "$host $port $dbname $credentials");
+		$oid = $_POST['template-contactform-default-select'];
+		$quan = $_POST['template-contactform'];
+		$sql = "DELETE FROM purchase_order WHERE";
+		pg_query($db, $sql);
+
 		header('Location: suppList.php'); exit();
 	}
 
 	if(isset($_POST['template-contactform-submit'])) {
-		transferEmployee();
+		updateOrder();
+	}
+
+	if(isset($_POST['template-contactform-submitter'])) {
+		cancelOrder();
 	}
 ?>
 
@@ -222,17 +238,19 @@
 												</div>
 
 												<div class="col-12 bottommargin-sm">
-													<label for="template-contactform">New Quantity:<small class="text-danger">*</small></label>
-													<input type="text" id="template-contactform" name="template-contactform-phone" value="" class="form-control required" placeholder="Enter New Value" />
+													<label for="template-contactform">New Quantity:</label>
+													<input type="text" id="template-contactform" name="template-contactform" value="" class="form-control" placeholder="Enter New Value" />
 												</div>
 
 												<div class="col-12">
 													<button type="submit" name="template-contactform-submit" class="btn btn-secondary btn-block btn-lg">Update</button>
 												</div>
 
+											<!-- Cancel Option, not implemented yet
 												<div class="col-12">
-													<button type="submit" name="template-contactform-submit" class="btn btn-secondary btn-block btn-lg">Cancel Order</button>
+													<button type="submit" name="template-contactform-submitter" class="btn btn-secondary btn-block btn-lg">Cancel Order</button>
 												</div>
+											-->
 
 											</div>
 
