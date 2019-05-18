@@ -32,6 +32,8 @@ Foreign-key constraints:
     "fk_client_address" FOREIGN KEY (address_id) REFERENCES address(address_id)
 Referenced by:
     TABLE "contracts" CONSTRAINT "fk_contract_client" FOREIGN KEY (client_id) REFERENCES clients(client_id)
+Triggers:
+    delete_client BEFORE DELETE ON clients FOR EACH ROW EXECUTE PROCEDURE fun_delete_client()
 
                 Table "public.contains"
    Column    |  Type   | Collation | Nullable | Default 
@@ -47,14 +49,15 @@ Foreign-key constraints:
     "fk_contain_contract" FOREIGN KEY (contract_id) REFERENCES contracts(contract_id)
     "fk_contain_product" FOREIGN KEY (product_id) REFERENCES products(product_id)
 
-                Table "public.contracts"
-   Column    |  Type   | Collation | Nullable | Default 
--------------+---------+-----------+----------+---------
- contract_id | integer |           | not null | 
- frequency   | integer |           |          | 7
- start_date  | date    |           | not null | 
- end_date    | date    |           | not null | 
- client_id   | integer |           | not null | 
+                 Table "public.contracts"
+    Column     |  Type   | Collation | Nullable | Default 
+---------------+---------+-----------+----------+---------
+ contract_id   | integer |           | not null | 
+ frequency     | integer |           |          | 7
+ start_date    | date    |           | not null | 
+ end_date      | date    |           | not null | 
+ delivery_time | integer |           |          | 1000
+ client_id     | integer |           | not null | 
 Indexes:
     "contracts_pkey" PRIMARY KEY, btree (contract_id)
 Check constraints:
@@ -88,20 +91,23 @@ Indexes:
 Foreign-key constraints:
     "fk_department_address" FOREIGN KEY (address_id) REFERENCES address(address_id)
 Referenced by:
-    TABLE "distributed" CONSTRAINT "fk_distribute_department" FOREIGN KEY (department_id) REFERENCES department(department_id)
     TABLE "manages" CONSTRAINT "fk_manages_depart" FOREIGN KEY (department_id) REFERENCES department(department_id)
     TABLE "works_for" CONSTRAINT "fk_works_depart" FOREIGN KEY (department_id) REFERENCES department(department_id)
 
-                Table "public.distributed"
-    Column     |  Type   | Collation | Nullable | Default 
----------------+---------+-----------+----------+---------
- department_id | integer |           | not null | 
- product_id    | integer |           | not null | 
+                 Table "public.distributed"
+   Column   |  Type   | Collation | Nullable |   Default    
+------------+---------+-----------+----------+--------------
+ vehicle_id | integer |           | not null | 
+ product_id | integer |           | not null | 
+ ware_id    | integer |           | not null | 
+ quantity   | integer |           |          | 
+ dist_date  | date    |           |          | CURRENT_DATE
 Indexes:
-    "pk_distribute" UNIQUE CONSTRAINT, btree (department_id, product_id)
+    "pk_distribute" UNIQUE CONSTRAINT, btree (vehicle_id, product_id, ware_id)
 Foreign-key constraints:
-    "fk_distribute_department" FOREIGN KEY (department_id) REFERENCES department(department_id)
     "fk_distribute_product" FOREIGN KEY (product_id) REFERENCES products(product_id)
+    "fk_distribute_vehicle" FOREIGN KEY (vehicle_id) REFERENCES vehicles(vehicle_id)
+    "fk_distribute_ware" FOREIGN KEY (ware_id) REFERENCES warehouse(ware_id)
 
                                 Table "public.employee"
    Column    |         Type          | Collation | Nullable |          Default          
@@ -126,6 +132,7 @@ Referenced by:
     TABLE "manages" CONSTRAINT "fk_manages_employee" FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
     TABLE "routes" CONSTRAINT "fk_routes_employee" FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
     TABLE "supervises" CONSTRAINT "fk_super_employee" FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
+    TABLE "works_ware" CONSTRAINT "fk_ware_employee" FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
     TABLE "works_for" CONSTRAINT "fk_works_employee" FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
 
                                   Table "public.locations"
@@ -153,7 +160,7 @@ Referenced by:
  start_date    | date    |           | not null | 
  end_date      | date    |           |          | 
 Indexes:
-    "pk_manages" UNIQUE CONSTRAINT, btree (employee_id, department_id)
+    "pk_manages" UNIQUE CONSTRAINT, btree (employee_id, department_id, start_date)
 Check constraints:
     "ck_manages_dates" CHECK (start_date < end_date)
 Foreign-key constraints:
@@ -189,6 +196,8 @@ Indexes:
 Foreign-key constraints:
     "fk_prov_contract" FOREIGN KEY (contract_id) REFERENCES contracts(contract_id)
     "fk_prov_loc" FOREIGN KEY (loc_id) REFERENCES locations(loc_id)
+Triggers:
+    update_nextadd BEFORE UPDATE OF loc_id ON provisioned FOR EACH ROW EXECUTE PROCEDURE update_add()
 
                Table "public.purchase_order"
      Column     |  Type   | Collation | Nullable | Default 
@@ -227,6 +236,7 @@ Foreign-key constraints:
     "fk_route_first" FOREIGN KEY (first_address) REFERENCES locations(loc_id)
     "fk_route_second" FOREIGN KEY (next_address) REFERENCES locations(loc_id)
     "fk_routes_employee" FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
+    "fk_routes_vehicle" FOREIGN KEY (vehicle_num) REFERENCES vehicles(vehicle_id)
 
                  Table "public.stores"
    Column   |  Type   | Collation | Nullable | Default 
@@ -250,7 +260,7 @@ Foreign-key constraints:
  start_date   | date    |           | not null | 
  end_date     | date    |           |          | 
 Indexes:
-    "pk_super" UNIQUE CONSTRAINT, btree (super_emp_id, employee_id)
+    "pk_super" UNIQUE CONSTRAINT, btree (super_emp_id, employee_id, start_date)
 Check constraints:
     "ck_super_dates" CHECK (start_date < end_date)
 Foreign-key constraints:
@@ -295,8 +305,10 @@ Indexes:
 Foreign-key constraints:
     "fk_warehouse_address" FOREIGN KEY (address_id) REFERENCES address(address_id)
 Referenced by:
+    TABLE "distributed" CONSTRAINT "fk_distribute_ware" FOREIGN KEY (ware_id) REFERENCES warehouse(ware_id)
     TABLE "stores" CONSTRAINT "fk_store_ware" FOREIGN KEY (ware_id) REFERENCES warehouse(ware_id)
     TABLE "supplies" CONSTRAINT "fk_supply_ware" FOREIGN KEY (ware_id) REFERENCES warehouse(ware_id)
+    TABLE "works_ware" CONSTRAINT "fk_works_ware" FOREIGN KEY (ware_id) REFERENCES warehouse(ware_id)
 
                  Table "public.works_for"
     Column     |  Type   | Collation | Nullable | Default 
@@ -306,7 +318,7 @@ Referenced by:
  start_date    | date    |           | not null | 
  end_date      | date    |           |          | 
 Indexes:
-    "pk_works" UNIQUE CONSTRAINT, btree (department_id, employee_id)
+    "pk_works" UNIQUE CONSTRAINT, btree (department_id, employee_id, start_date)
 Check constraints:
     "ck_works_dates" CHECK (start_date < end_date)
 Foreign-key constraints:

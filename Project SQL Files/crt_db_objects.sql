@@ -112,10 +112,8 @@ CREATE TABLE IF NOT EXISTS supplier (
 CREATE TABLE IF NOT EXISTS purchase_order (
 	Order_ID integer primary key not null,
 	Date_Submitted Date not null,
-	Date_Fulfilled Date,
 	S_ID integer not null,
-	CONSTRAINT fk_purch_supp FOREIGN KEY (S_ID) REFERENCES supplier(S_ID),
-	CONSTRAINT ck_purch_dates CHECK(Date_Submitted < Date_Fulfilled)
+	CONSTRAINT fk_purch_supp FOREIGN KEY (S_ID) REFERENCES supplier(S_ID)
 );
 
 CREATE TABLE IF NOT EXISTS works_for (
@@ -133,7 +131,7 @@ CREATE TABLE IF NOT EXISTS works_ware (
 	Ware_ID integer not null,
 	Employee_ID integer not null,
 	Start_Date Date default CURRENT_DATE,
-	End_Date Date,
+	End_Date Date default null,
 	CONSTRAINT pk_ware_work UNIQUE (Ware_ID, Employee_ID, Start_Date),
 	CONSTRAINT fk_ware_employee FOREIGN KEY (Employee_ID) REFERENCES employee(Employee_ID),
 	CONSTRAINT fk_works_ware FOREIGN KEY (Ware_ID) REFERENCES warehouse(Ware_ID),
@@ -203,12 +201,13 @@ CREATE TABLE IF NOT EXISTS stores (
 );
 
 CREATE TABLE IF NOT EXISTS supplies (
-	S_ID integer not null,
+	Order_ID integer not null,
 	Ware_ID integer not null,
 	Product_ID integer not null,
 	Quantity integer not null,
-	CONSTRAINT pk_supplies UNIQUE (S_ID, Ware_ID, Product_ID),
-	CONSTRAINT fk_supply_supplier FOREIGN KEY (S_ID) REFERENCES supplier(S_ID),
+	Sup_Date Date default null,
+	CONSTRAINT pk_supplies UNIQUE (Ware_ID, Product_ID, Sup_Date),
+	CONSTRAINT fk_supply_order FOREIGN KEY (Order_ID) REFERENCES purchase_order(Order_ID),
 	CONSTRAINT fk_supply_ware FOREIGN KEY (Ware_ID) REFERENCES warehouse(Ware_ID),
 	CONSTRAINT fk_supply_product FOREIGN KEY (Product_ID) REFERENCES products(Product_ID),
 	CONSTRAINT ck_supply_quantity CHECK(Quantity > 0)
@@ -234,3 +233,47 @@ CREATE VIEW activeContracts AS
 	INNER JOIN (locations l INNER JOIN provisioned p ON p.Loc_ID = l.Loc_ID)
 	ON o.Contract_ID = p.Contract_ID
 	ORDER BY id, contract;
+
+CREATE VIEW activePurch AS
+	SELECT p.Order_ID as Order,
+	s.S_Name as Supplier,
+	o.Product_Name as Product,
+	l.Quantity,
+	(o.Purchase_Price * l.Quantity) as Total,
+	p.Date_Submitted as OrderDate
+	FROM (supplier s INNER JOIN purchase_order p ON s.S_ID = p.S_ID)
+	INNER JOIN (supplies l INNER JOIN products o ON l.Product_ID = o.Product_ID
+	AND l.Sup_Date IS NULL)
+	ON p.Order_ID = l.Order_ID
+	ORDER BY p.Order_ID, s.S_Name, o.Product_Name;
+
+CREATE VIEW activeSupp AS
+	SELECT s.S_Name as Name,
+	COUNT(o.Order_ID) as Pending
+	FROM (supplier s INNER JOIN purchase_order o ON s.S_ID = o.S_ID)
+	INNER JOIN supplies l ON o.Order_ID = l.Order_ID AND l.Sup_Date IS NULL
+	GROUP BY s.S_Name
+	ORDER BY s.S_Name;
+
+CREATE VIEW allPurch AS
+	SELECT p.Order_ID as Order,
+	s.S_Name as Supplier,
+	o.Product_Name as Product,
+	l.Quantity,
+	(o.Purchase_Price * l.Quantity) as Total,
+	p.Date_Submitted as OrderDate,
+	l.Sup_Date as FillDate
+	FROM (supplier s INNER JOIN purchase_order p ON s.S_ID = p.S_ID)
+	INNER JOIN (supplies l INNER JOIN products o ON l.Product_ID = o.Product_ID)
+	ON p.Order_ID = l.Order_ID
+	ORDER BY p.Order_ID, s.S_Name, o.Product_Name;
+
+CREATE VIEW currEmp AS
+	SELECT e.F_Name || ' ' || e.M_Init || ' ' || e.L_Name as name,
+	a.City_Name || ' Warehouse' as ware,
+	w.Start_Date as hired
+	FROM (employee e INNER JOIN works_ware w ON e.Employee_ID = w.Employee_ID
+	AND w.End_Date IS NULL)
+	INNER JOIN (warehouse h INNER JOIN address a ON h.Address_ID = a.Address_ID)
+	ON h.Ware_ID = w.Ware_ID
+	ORDER BY e.F_Name, a.City_Name;

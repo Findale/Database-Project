@@ -62,7 +62,7 @@ INSERT INTO products VALUES (31, 'Lemon Meringue Pie', 11.19, 8.99);
 
 INSERT INTO products VALUES (32, 'Chocolate Brownie Bites', 9.99, 6.49);
 
-INSERT INTO products VALUES (33, 'Chocolate Crème Pie', 10.99, 8.49);
+INSERT INTO products VALUES (33, 'Chocolate Creme Pie', 10.99, 8.49);
 
 INSERT INTO products VALUES (34, 'Monster Cookie Dough', 10.99, 7.99);
 
