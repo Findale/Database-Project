@@ -1,6 +1,6 @@
-INSERT INTO purchase_order VALUES (1, to_date('2/20/2015', 'mm/dd/yyyy'), 5);
+INSERT INTO purchase_order VALUES (2, to_date('2/20/2015', 'mm/dd/yyyy'), 5);
 
-INSERT INTO purchase_order VALUES (2, to_date('2/14/2019', 'mm/dd/yyyy'), 15);
+INSERT INTO purchase_order VALUES (1, to_date('5/14/2019', 'mm/dd/yyyy'), 15);
 
 INSERT INTO purchase_order VALUES (3, to_date('2/19/2016', 'mm/dd/yyyy'), 11);
 

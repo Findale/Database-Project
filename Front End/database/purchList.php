@@ -1,3 +1,21 @@
+<?php
+	# run: composer install docraptor/docraptor
+	$configuration = DocRaptor\Configuration::getDefaultConfiguration();
+	$configuration->setUsername("xMmuXwUSOs6KZoH1w7i");
+
+	$docraptor = new DocRaptor\DocApi();
+
+	$doc = new DocRaptor\Doc();
+	$doc->setTest(true);
+	$doc->setDocumentUrl("invoice.html"); //
+	$doc->setName("invoice.pdf");
+	$doc->setDocumentType("pdf");
+
+	$create_response = $docraptor->createDoc($doc);
+
+?>
+
+
 <!DOCTYPE html>
 <html dir="ltr" lang="en-US">
 <head>

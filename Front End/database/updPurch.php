@@ -214,7 +214,7 @@
 											<div class="row">
 
 												<div class="col-12 bottommargin-sm">
-													<label for="template-contactform-default-select">Employee Name<small class="text-danger">*</small></label>
+													<label for="template-contactform-default-select">Order to Update:<small class="text-danger">*</small></label>
 													<select id="template-contactform-default-select" name="template-contactform-default-select" class="form-control">
 														<option value="" disabled selected>Select One</option>
 <?php													$host        = "host = 127.0.0.1";
