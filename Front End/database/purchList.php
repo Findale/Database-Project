@@ -1,17 +1,21 @@
 <?php
-	# run: composer install docraptor/docraptor
-	$configuration = DocRaptor\Configuration::getDefaultConfiguration();
-	$configuration->setUsername("xMmuXwUSOs6KZoH1w7i");
+	if (isset($_POST['template-contactform-submit'])) {
+		# run: composer install docraptor/docraptor
+		require_once('docraptor/autoload.php');
+		$configuration = DocRaptor\Configuration::getDefaultConfiguration();
+		$configuration->setUsername("xMmuXwUSOs6KZoH1w7i");
+		$configuration->setSSLVerification(false);
 
-	$docraptor = new DocRaptor\DocApi();
+		$docraptor = new DocRaptor\DocApi();
 
-	$doc = new DocRaptor\Doc();
-	$doc->setTest(true);
-	$doc->setDocumentUrl("invoice.html"); //
-	$doc->setName("invoice.pdf");
-	$doc->setDocumentType("pdf");
+		$doc = new DocRaptor\Doc();
+		$doc->setTest(true);
+		$doc->setDocumentUrl("invoice.html"); //
+		$doc->setName("invoice.pdf");
+		$doc->setDocumentType("pdf");
 
-	$create_response = $docraptor->createDoc($doc);
+		$create_response = $docraptor->createDoc($doc);
+	}
 
 ?>
 

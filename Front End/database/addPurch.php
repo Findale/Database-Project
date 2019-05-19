@@ -1,7 +1,37 @@
 <?php
+	function transferEmployee() {
+		$host        = "host = 127.0.0.1";
+		$port        = "port = 5432";
+		$dbname      = "dbname = delivery";
+		$credentials = "user = delivery password=frozen";
 
+		$db = pg_connect( "$host $port $dbname $credentials");
+		$sid = $_POST['template-contactform-default-select'];
+		$wid = $_POST['template-contactform-default-selector'];
+		$pid = $_POST['template-contactform-default-selected'];
+		$qty = $_POST['template-contactform'];
 
+		$sql = "SELECT max(Order_ID) FROM purchase_order";
+		$ret = pg_query($db, $sql);
 
+		while ($row = pg_fetch_row($ret)) {
+			$maxId = $row[0];
+			break;
+		}
+		$maxId++;
+		$query = "INSERT INTO purchase_order (Order_ID, Date_Submitted, S_ID) VALUES ('$maxId', CURRENT_DATE, '$sid')";
+		pg_query($db, $query);
+		$query = "INSERT INTO supplies (Order_ID, Ware_ID, Product_ID, Quantity, Sup_Date)
+			VALUES ('$maxId', '$wid', '$pid', '$qty', NULL)";
+		$sql = "Update supplies SET Quantity = '$quan' WHERE Order_ID = '$oid' AND Sup_Date IS NULL";
+		pg_query($db, $sql);
+
+		header('Location: suppList.php'); exit();
+	}
+
+	if(isset($_POST['template-contactform-submit'])) {
+		updateOrder();
+	}
 ?>
 
 <!DOCTYPE html>
@@ -180,27 +210,85 @@
 											<div class="row">
 
 												<div class="col-12 bottommargin-sm">
-													<label for="template-contactform-name">Supplier Name<small class="text-danger">*</small></label>
-													<input type="text" id="template-contactform-name" name="template-contactform-name" value="" class="form-control required" placeholder="Enter Supplier's Name" />
+													<label for="template-contactform-default-select">Select Supplier:<small class="text-danger">*</small></label>
+													<select id="template-contactform-default-select" name="template-contactform-default-select" class="form-control">
+														<option value="" disabled selected>Select One</option>
+<?php													$host        = "host = 127.0.0.1";
+														$port        = "port = 5432";
+														$dbname      = "dbname = delivery";
+														$credentials = "user = delivery password=frozen";
+
+														$db = pg_connect( "$host $port $dbname $credentials"  );
+														$sql ="SELECT * FROM supplier ORDER BY S_Name";
+														$ret = pg_query($db, $sql);
+														if(!$ret) {
+															echo pg_last_error($db);
+															exit;
+														}
+														while($row = pg_fetch_row($ret)) {
+															echo
+															'<option value = "', $row[0], '">',
+																$row[1], '</option>';
+														}
+?>													</select>
 												</div>
 
 												<div class="col-12 bottommargin-sm">
-													<label for="template-contactform-email">Email Address<small class="text-danger">*</small></label>
-													<input type="email" name="template-contactform-email" id="template-contactform-email" class="form-control required" value="" placeholder="email@domain.com" />
+													<label for="template-contactform-default-selector">Select Warehouse<small class="text-danger">*</small></label>
+													<select id="template-contactform-default-selector" name="template-contactform-default-selector" class="form-control">
+														<option value="" disabled selected>Select One</option>
+<?php													$host        = "host = 127.0.0.1";
+														$port        = "port = 5432";
+														$dbname      = "dbname = delivery";
+														$credentials = "user = delivery password=frozen";
+
+														$db = pg_connect( "$host $port $dbname $credentials"  );
+														$sql ="SELECT w.Ware_ID, a.City_Name || ' Warehouse' FROM warehouse w INNER JOIN address a ON w.Address_ID = a.Address_ID ORDER BY a.City_Name";
+														$ret = pg_query($db, $sql);
+														if(!$ret) {
+															echo pg_last_error($db);
+															exit;
+														}
+														while($row = pg_fetch_row($ret)) {
+															echo
+															'<option value = "', $row[0], '">',
+																$row[1], '</option>';
+														}
+?>													</select>
 												</div>
 
 												<div class="col-12 bottommargin-sm">
-													<label for="template-contactform-phone">Phone:<small class="text-danger">*</small></label>
-													<input type="text" id="template-contactform-phone" name="template-contactform-phone" value="" class="form-control" placeholder="Enter Contact Phone Number" />
+													<label for="template-contactform-default-selected">Select Product:<small class="text-danger">*</small></label>
+													<select id="template-contactform-default-selected" name="template-contactform-default-selected" class="form-control">
+														<option value="" disabled selected>Select One</option>
+<?php													$host        = "host = 127.0.0.1";
+														$port        = "port = 5432";
+														$dbname      = "dbname = delivery";
+														$credentials = "user = delivery password=frozen";
+
+														$db = pg_connect( "$host $port $dbname $credentials"  );
+														$sql ="SELECT Product_ID, Product_Name FROM products ORDER BY Product_Name";
+														$ret = pg_query($db, $sql);
+														if(!$ret) {
+															echo pg_last_error($db);
+															exit;
+														}
+														while($row = pg_fetch_row($ret)) {
+															echo
+															'<option value = "', $row[0], '">',
+																$row[1], '</option>';
+														}
+?>													</select>
+												</div>
+
+												<div class="col-12 bottommargin-sm">
+													<label for="template-contactform">Enter Quantity:</label>
+													<input type="text" id="template-contactform" name="template-contactform" value="" class="form-control" placeholder="Enter New Value" />
 												</div>
 
 												<div class="col-12">
-													<button type="submit" name="template-contactform-submit" class="btn btn-secondary btn-block btn-lg">Place Order</button>
+													<button type="submit" name="template-contactform-submit" class="btn btn-secondary btn-block btn-lg">Order</button>
 												</div>
-
-												<input type="hidden" name="prefix" value="template-contactform-">
-
-											</div>
 
 										</form>
 									</div>
@@ -252,39 +340,6 @@
 	<!-- Footer Scripts
 	============================================= -->
 	<script src="js/functions.js"></script>
-
-	<script>
-		jQuery(document).ready( function(){
-
-			jQuery(".range_01").ionRangeSlider({
-				grid: true,
-				min: 18,
-				max: 70,
-				from: 30,
-				prefix: "Age ",
-				max_postfix: "+"
-			});
-
-			jQuery(".select-tags").select2({
-				tags: true,
-				placeholder: "Add Values and Press Enter"
-			});
-
-			jQuery('.datetimepicker1').datetimepicker();
-
-			jQuery('.selectsplitter').selectsplitter();
-
-			tinymce.init({
-				selector: '.textarea-message',
-				menubar: false,
-				setup: function(editor) {
-					editor.on('change', function(e) {
-						editor.save();
-					});
-				}
-			});
-		});
-	</script>
 
 </body>
 </html>

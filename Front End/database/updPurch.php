@@ -1,5 +1,5 @@
 <?php
-	function transferEmployee() {
+	function updateOrder() {
 		$host        = "host = 127.0.0.1";
 		$port        = "port = 5432";
 		$dbname      = "dbname = delivery";
@@ -8,8 +8,12 @@
 		$db = pg_connect( "$host $port $dbname $credentials");
 		$oid = $_POST['template-contactform-default-select'];
 		$quan = $_POST['template-contactform'];
-		$sql = "Update supplies SET Quantity = '$quan' WHERE Order_ID = '$oid' AND Sup_Date IS NULL";
-		pg_query($db, $sql);
+		$sql = "Update supplies SET Quantity = '$quan' WHERE Order_ID = '$oid'";
+		$ret = pg_query($db, $sql);
+		if(!$ret) {
+			echo pg_last_error($db);
+			exit;
+		}
 
 		header('Location: suppList.php'); exit();
 	}
@@ -31,10 +35,6 @@
 
 	if(isset($_POST['template-contactform-submit'])) {
 		updateOrder();
-	}
-
-	if(isset($_POST['template-contactform-submitter'])) {
-		cancelOrder();
 	}
 ?>
 
