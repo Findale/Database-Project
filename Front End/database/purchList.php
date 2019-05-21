@@ -161,6 +161,18 @@ EOF;
 							echo pg_last_error($db);
 							exit;
 						}
+						$row = pg_fetch_row($ret);
+						echo
+						'<tr>',
+							'<td>', $row[0], '</td>',
+							'<td>', $row[1], '</td>',
+							'<td>', $row[2], '</td>',
+							'<td>', $row[3], '</td>',
+							'<td> $', $row[4], '</td>',
+							'<td>', $row[5], '</td>',
+							'<td>', $row[6], '</td>',
+							'<td> <a href="invoice1.pdf">Report</a> </td>',
+						'</tr>';
 						while($row = pg_fetch_row($ret)) {
 							echo
 							'<tr>',
@@ -171,6 +183,7 @@ EOF;
 								'<td> $', $row[4], '</td>',
 								'<td>', $row[5], '</td>',
 								'<td>', $row[6], '</td>',
+								'<td> <a href="#">Report</a> </td>',
 							'</tr>';
 						}
 ?>						</table>
